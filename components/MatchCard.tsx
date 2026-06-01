@@ -1,5 +1,8 @@
 'use client'
 
+'use client'
+
+import useIsMobile from '@/components/useIsMobile'
 import { Match } from '@/types'
 
 interface MatchCardProps {
@@ -8,6 +11,7 @@ interface MatchCardProps {
 }
 
 export default function MatchCard({ match, onPredict }: MatchCardProps) {
+  const isMobile = useIsMobile()
   const isFinished = match.status === 'finished'
   const isOngoing = match.status === 'ongoing'
   const isScheduled = match.status === 'scheduled'
@@ -18,12 +22,12 @@ export default function MatchCard({ match, onPredict }: MatchCardProps) {
 
   return (
     <div style={getCardStyle(isFinished, isOngoing)}>
-      <div style={styles.header}>
+      <div style={{ ...styles.header, ...(isMobile ? styles.headerMobile : {}) }}>
         <span style={styles.date}>{dateStr} • {timeStr}</span>
         <span style={getStatusStyle(match.status)}>{match.status}</span>
       </div>
 
-      <div style={styles.matchContainer}>
+      <div style={{ ...styles.matchContainer, ...(isMobile ? styles.matchContainerMobile : {}) }}>
         <div style={styles.team}>
           <span style={styles.teamName}>{match.team_a}</span>
         </div>
@@ -50,7 +54,7 @@ export default function MatchCard({ match, onPredict }: MatchCardProps) {
       </div>
 
       {isScheduled && onPredict && (
-        <button style={styles.predictBtn} onClick={() => onPredict(match.id)}>
+        <button style={{ ...styles.predictBtn, ...(isMobile ? styles.predictBtnMobile : {}) }} onClick={() => onPredict(match.id)}>
           Predecir
         </button>
       )}
@@ -104,6 +108,12 @@ const styles = {
     color: 'var(--color-text-muted)',
   } as React.CSSProperties,
 
+  headerMobile: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '8px',
+  } as React.CSSProperties,
+
   date: {
     fontWeight: 500,
   } as React.CSSProperties,
@@ -115,6 +125,11 @@ const styles = {
     alignItems: 'center',
     marginBottom: '12px',
     padding: '12px 0',
+  } as React.CSSProperties,
+
+  matchContainerMobile: {
+    gridTemplateColumns: '1fr',
+    gap: '8px',
   } as React.CSSProperties,
 
   team: {
@@ -156,5 +171,10 @@ const styles = {
     cursor: 'pointer',
     transition: 'all 150ms ease',
     backgroundSize: '200% 100%',
+  } as React.CSSProperties,
+
+  predictBtnMobile: {
+    padding: '10px 12px',
+    fontSize: '14px',
   } as React.CSSProperties,
 }

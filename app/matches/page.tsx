@@ -7,9 +7,11 @@ import { api, handleApiError } from '@/services/api'
 import { Match } from '@/types'
 import MatchCard from '../../components/MatchCard'
 import Card from '@/components/Card'
+import useIsMobile from '@/components/useIsMobile'
 
 export default function MatchesPage() {
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [matches, setMatches] = useState<Match[]>([])
   const [filter, setFilter] = useState<string | undefined>('scheduled')
   const [loading, setLoading] = useState(true)
@@ -112,7 +114,7 @@ export default function MatchesPage() {
             </Card>
 
             {totalPages > 1 && (
-              <div style={styles.pagination}>
+              <div style={{ ...styles.pagination, ...(isMobile ? styles.paginationMobile : {}) }}>
                 <button
                   style={getPaginationButtonStyle(currentPage === 1)}
                   onClick={handlePrevPage}
@@ -232,6 +234,10 @@ const styles = {
     zIndex: 1,
   } as React.CSSProperties,
 
+  contentMobile: {
+    padding: '24px 16px',
+  } as React.CSSProperties,
+
   errorBox: {
     backgroundColor: 'rgba(255, 51, 102, 0.1)',
     border: '1px solid var(--color-accent-pink)',
@@ -270,6 +276,11 @@ const styles = {
     marginTop: '24px',
     position: 'relative',
     zIndex: 1,
+  } as React.CSSProperties,
+
+  paginationMobile: {
+    flexDirection: 'column',
+    alignItems: 'stretch',
   } as React.CSSProperties,
 
   pageInfo: {

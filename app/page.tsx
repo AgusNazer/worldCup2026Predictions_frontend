@@ -9,9 +9,11 @@ import RankingTable from '@/components/RankingTable'
 import MatchCard from '../components/MatchCard'
 import Card from '@/components/Card'
 import Button from '@/components/Button'
+import useIsMobile from '@/components/useIsMobile'
 
 export default function Home() {
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [ranking, setRanking] = useState<RankingEntry[]>([])
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
@@ -45,8 +47,8 @@ export default function Home() {
         />
       </div>
 
-      <section style={styles.hero}>
-        <div style={styles.heroMedia}>
+      <section style={{ ...styles.hero, ...(isMobile ? styles.heroMobile : {}) }}>
+        <div style={{ ...styles.heroMedia, ...(isMobile ? styles.heroMediaMobile : {}) }}>
           <Image
             src="/assets/mundialPortada.jpg"
             alt="Portada World Cup Predictor"
@@ -57,7 +59,7 @@ export default function Home() {
           <div style={styles.heroOverlay} />
           <div style={styles.heroGlowA} />
           <div style={styles.heroGlowB} />
-          <div style={styles.heroCopy}>
+          <div style={{ ...styles.heroCopy, ...(isMobile ? styles.heroCopyMobile : {}) }}>
             <div style={styles.heroTag}>Mundial 2026 • vive la fiesta</div>
             <h1 style={styles.heroTitle}>Predice. Compite. Domina.</h1>
             <p style={styles.heroSubtitle}>
@@ -76,7 +78,7 @@ export default function Home() {
         {error && <div style={styles.errorBox}>{error}</div>}
         {loading && <div style={styles.loading}>Cargando...</div>}
 
-        <div style={styles.grid}>
+        <div style={{ ...styles.grid, ...(isMobile ? styles.gridMobile : {}) }}>
           <Card title="🏆 Top 5 Ranking">
             {ranking.length > 0 ? (
               <RankingTable entries={ranking} />
@@ -144,6 +146,10 @@ const styles = {
     zIndex: 2,
   } as React.CSSProperties,
 
+  heroMobile: {
+    padding: '12px 12px 0',
+  } as React.CSSProperties,
+
   heroMedia: {
     position: 'relative',
     minHeight: '520px',
@@ -152,6 +158,11 @@ const styles = {
     boxShadow: 'var(--shadow-lg)',
     border: '1px solid var(--color-border)',
     backgroundColor: '#000',
+  } as React.CSSProperties,
+
+  heroMediaMobile: {
+    minHeight: '360px',
+    borderRadius: 'var(--radius-lg)',
   } as React.CSSProperties,
 
   heroImage: {
@@ -195,6 +206,10 @@ const styles = {
     justifyContent: 'flex-end',
     padding: '32px',
     textAlign: 'center',
+  } as React.CSSProperties,
+
+  heroCopyMobile: {
+    padding: '20px 14px',
   } as React.CSSProperties,
 
   heroTitle: {
@@ -247,6 +262,10 @@ const styles = {
     zIndex: 1,
   } as React.CSSProperties,
 
+  contentMobile: {
+    padding: '24px 12px',
+  } as React.CSSProperties,
+
   contentBg: {
     position: 'absolute',
     inset: 0,
@@ -267,6 +286,11 @@ const styles = {
     gap: '24px',
     position: 'relative',
     zIndex: 1,
+  } as React.CSSProperties,
+
+  gridMobile: {
+    gridTemplateColumns: '1fr',
+    gap: '16px',
   } as React.CSSProperties,
 
   errorBox: {

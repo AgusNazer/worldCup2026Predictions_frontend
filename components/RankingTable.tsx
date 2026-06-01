@@ -1,13 +1,16 @@
+import useIsMobile from '@/components/useIsMobile'
 import { RankingEntry } from '@/types'
 
 export default function RankingTable({ entries }: { entries: RankingEntry[] }) {
+  const isMobile = useIsMobile()
+
   if (!entries.length) {
     return <div style={styles.empty}>Sin datos</div>
   }
 
   return (
     <div style={styles.table}>
-      <div style={styles.header}>
+      <div style={{ ...styles.header, ...(isMobile ? styles.headerMobile : {}) }}>
         <div style={{ ...styles.cell, ...styles.colPos }}>#</div>
         <div style={{ ...styles.cell, ...styles.colUser }}>Usuario</div>
         <div style={{ ...styles.cell, textAlign: 'right' }}>Puntos</div>
@@ -15,8 +18,8 @@ export default function RankingTable({ entries }: { entries: RankingEntry[] }) {
       </div>
 
       <div style={styles.body}>
-        {entries.map((entry, idx) => (
-          <div key={entry.user_id} style={styles.row}>
+        {entries.map((entry) => (
+          <div key={entry.user_id} style={{ ...styles.row, ...(isMobile ? styles.rowMobile : {}) }}>
             <div style={{ ...styles.cell, ...styles.colPos, color: 'var(--color-accent-yellow)' }}>
               {entry.position}
             </div>
@@ -54,6 +57,12 @@ const styles = {
     fontSize: '13px',
   } as React.CSSProperties,
 
+  headerMobile: {
+    gridTemplateColumns: '48px 1fr 76px 90px',
+    padding: '10px 12px',
+    fontSize: '12px',
+  } as React.CSSProperties,
+
   body: {
     display: 'flex',
     flexDirection: 'column',
@@ -65,6 +74,11 @@ const styles = {
     padding: '12px 16px',
     alignItems: 'center',
     borderBottom: '1px solid var(--color-divider)',
+  } as React.CSSProperties,
+
+  rowMobile: {
+    gridTemplateColumns: '48px 1fr 76px 90px',
+    padding: '10px 12px',
   } as React.CSSProperties,
 
   cell: {

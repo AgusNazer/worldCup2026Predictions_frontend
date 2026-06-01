@@ -7,6 +7,7 @@ import { api, handleApiError } from '@/services/api'
 import { Match, Prediction } from '@/types'
 import Card from '@/components/Card'
 import Button from '@/components/Button'
+import useIsMobile from '@/components/useIsMobile'
 
 type PredictionWithMatch = {
   prediction: Prediction
@@ -15,6 +16,7 @@ type PredictionWithMatch = {
 
 export default function MyPredictionsPage() {
   const router = useRouter()
+  const isMobile = useIsMobile()
   const [predictions, setPredictions] = useState<Prediction[]>([])
   const [matchesById, setMatchesById] = useState<Record<number, Match>>({})
   const [loading, setLoading] = useState(true)
@@ -85,22 +87,22 @@ export default function MyPredictionsPage() {
                   const statusLabel = match?.status === 'finished' ? 'finalizado' : 'pendiente'
 
                   return (
-                    <div key={prediction.id} style={styles.predItem}>
+                    <div key={prediction.id} style={{ ...styles.predItem, ...(isMobile ? styles.predItemMobile : {}) }}>
                       <div style={styles.predMain}>
-                        <div style={styles.predHeader}>
+                        <div style={{ ...styles.predHeader, ...(isMobile ? styles.predHeaderMobile : {}) }}>
                           <span style={styles.matchName}>{matchLabel}</span>
                           <span style={styles.date}>
                             {new Date(prediction.prediction_date).toLocaleDateString('es-ES')}
                           </span>
                         </div>
-                        <div style={styles.predResult}>
+                        <div style={{ ...styles.predResult, ...(isMobile ? styles.predResultMobile : {}) }}>
                           <span style={styles.scoreBadge}>
                             {match?.team_a ?? 'Equipo A'} {prediction.pred_a} - {prediction.pred_b} {match?.team_b ?? 'Equipo B'}
                           </span>
                           <span style={styles.status}>Estado: {statusLabel}</span>
                         </div>
                       </div>
-                      <div style={styles.pointsBox}>Puntos: {prediction.points_earned}</div>
+                      <div style={{ ...styles.pointsBox, ...(isMobile ? styles.pointsBoxMobile : {}) }}>Puntos: {prediction.points_earned}</div>
                     </div>
                   )
                 })}
@@ -181,6 +183,10 @@ const styles = {
     zIndex: 1,
   } as React.CSSProperties,
 
+  contentMobile: {
+    padding: '24px 16px',
+  } as React.CSSProperties,
+
   errorBox: {
     backgroundColor: 'rgba(255, 51, 102, 0.1)',
     border: '1px solid var(--color-accent-pink)',
@@ -221,6 +227,11 @@ const styles = {
     gap: '16px',
   } as React.CSSProperties,
 
+  predItemMobile: {
+    alignItems: 'flex-start',
+    flexDirection: 'column',
+  } as React.CSSProperties,
+
   predMain: {
     display: 'flex',
     flexDirection: 'column',
@@ -233,6 +244,12 @@ const styles = {
     gap: '12px',
     alignItems: 'center',
     flexWrap: 'wrap',
+  } as React.CSSProperties,
+
+  predHeaderMobile: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '6px',
   } as React.CSSProperties,
 
   matchName: {
@@ -251,6 +268,12 @@ const styles = {
     gap: '12px',
     alignItems: 'center',
     flexWrap: 'wrap',
+  } as React.CSSProperties,
+
+  predResultMobile: {
+    flexDirection: 'column',
+    alignItems: 'flex-start',
+    gap: '8px',
   } as React.CSSProperties,
 
   scoreBadge: {
@@ -272,6 +295,11 @@ const styles = {
     textAlign: 'right',
     color: 'var(--color-accent-pink)',
     fontWeight: 800,
+  } as React.CSSProperties,
+
+  pointsBoxMobile: {
+    minWidth: 'unset',
+    textAlign: 'left',
   } as React.CSSProperties,
 
   empty: {

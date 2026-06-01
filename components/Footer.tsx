@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import useIsMobile from '@/components/useIsMobile'
 
 function LinkedInSVG(props: React.SVGProps<SVGSVGElement>) {
   return (
@@ -19,9 +20,11 @@ function GithubSVG(props: React.SVGProps<SVGSVGElement>) {
 }
 
 export default function Footer() {
+  const isMobile = useIsMobile()
+
   return (
     <footer style={styles.footer}>
-      <div style={styles.container}>
+      <div style={{ ...styles.container, ...(isMobile ? styles.containerMobile : {}) }}>
         <div>
           <h3 style={styles.brand}>World Cup Predictor</h3>
           <p style={styles.text}>
@@ -30,7 +33,7 @@ export default function Footer() {
           <p style={styles.copy}>© 2026 World Cup Predictor</p>
         </div>
 
-        <div style={styles.linksGrid}>
+        <div style={{ ...styles.linksGrid, ...(isMobile ? styles.linksGridMobile : {}) }}>
           <div>
             <h4 style={styles.heading}>Navegación</h4>
             <ul style={styles.list}>
@@ -49,8 +52,8 @@ export default function Footer() {
           </div>
         </div>
 
-        <div style={styles.socialCol}>
-          <div style={styles.socialRow}>
+        <div style={{ ...styles.socialCol, ...(isMobile ? styles.socialColMobile : {}) }}>
+          <div style={{ ...styles.socialRow, ...(isMobile ? styles.socialRowMobile : {}) }}>
             <a href="/rankings" style={styles.socialBtn} aria-label="Ranking">
               <span style={styles.socialInitial}>R</span>
             </a>
@@ -62,7 +65,7 @@ export default function Footer() {
             </a>
           </div>
 
-          <div style={styles.socialRow}>
+          <div style={{ ...styles.socialRow, ...(isMobile ? styles.socialRowMobile : {}) }}>
             <a
               href="https://www.linkedin.com"
               target="_blank"
@@ -115,6 +118,11 @@ const styles = {
     alignItems: 'start',
   } as React.CSSProperties,
 
+  containerMobile: {
+    gridTemplateColumns: '1fr',
+    gap: '20px',
+  } as React.CSSProperties,
+
   brand: {
     fontSize: '18px',
     fontWeight: 800,
@@ -139,6 +147,11 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
     gap: '24px',
+  } as React.CSSProperties,
+
+  linksGridMobile: {
+    gridTemplateColumns: '1fr',
+    gap: '18px',
   } as React.CSSProperties,
 
   heading: {
@@ -168,11 +181,19 @@ const styles = {
     alignItems: 'flex-start',
   } as React.CSSProperties,
 
+  socialColMobile: {
+    alignItems: 'stretch',
+  } as React.CSSProperties,
+
   socialRow: {
     display: 'flex',
     gap: '10px',
     flexWrap: 'wrap',
     alignItems: 'center',
+  } as React.CSSProperties,
+
+  socialRowMobile: {
+    justifyContent: 'flex-start',
   } as React.CSSProperties,
 
   socialBtn: {

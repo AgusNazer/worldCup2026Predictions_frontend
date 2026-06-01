@@ -6,9 +6,11 @@ import { api, handleApiError } from '@/services/api'
 import { Match } from '@/types'
 import Card from '@/components/Card'
 import Button from '@/components/Button'
+import useIsMobile from '@/components/useIsMobile'
 
 export default function PredictionPage() {
   const router = useRouter()
+  const isMobile = useIsMobile()
   const params = useParams<{ matchId: string }>()
   const matchId = Number(params.matchId)
   const isValidMatchId = Number.isFinite(matchId)
@@ -76,7 +78,7 @@ export default function PredictionPage() {
               </span>
             </div>
 
-            <div style={styles.form}>
+            <div style={{ ...styles.form, ...(isMobile ? styles.formMobile : {}) }}>
               <div style={styles.teamBlock}>
                 <label style={styles.label}>{match.team_a}</label>
                 <input
@@ -88,7 +90,7 @@ export default function PredictionPage() {
                 />
               </div>
 
-              <div style={styles.vs}>VS</div>
+              <div style={{ ...styles.vs, ...(isMobile ? styles.vsMobile : {}) }}>VS</div>
 
               <div style={styles.teamBlock}>
                 <label style={styles.label}>{match.team_b}</label>
@@ -108,7 +110,7 @@ export default function PredictionPage() {
               </strong>
             </div>
 
-            <div style={styles.actions}>
+            <div style={{ ...styles.actions, ...(isMobile ? styles.actionsMobile : {}) }}>
               <Button variant="secondary" onClick={() => router.push('/matches')}>
                 Cancelar
               </Button>
@@ -156,6 +158,10 @@ const styles = {
     margin: '0 auto',
     width: '100%',
     padding: '40px 20px',
+  } as React.CSSProperties,
+
+  contentMobile: {
+    padding: '24px 16px',
   } as React.CSSProperties,
 
   errorBox: {
@@ -208,6 +214,10 @@ const styles = {
     alignItems: 'end',
   } as React.CSSProperties,
 
+  formMobile: {
+    gridTemplateColumns: '1fr',
+  } as React.CSSProperties,
+
   teamBlock: {
     display: 'flex',
     flexDirection: 'column',
@@ -238,6 +248,11 @@ const styles = {
     fontWeight: 800,
   } as React.CSSProperties,
 
+  vsMobile: {
+    justifySelf: 'center',
+    margin: '4px 0',
+  } as React.CSSProperties,
+
   preview: {
     marginTop: '24px',
     padding: '14px',
@@ -253,5 +268,9 @@ const styles = {
     justifyContent: 'space-between',
     gap: '12px',
     marginTop: '24px',
+  } as React.CSSProperties,
+
+  actionsMobile: {
+    flexDirection: 'column',
   } as React.CSSProperties,
 }
