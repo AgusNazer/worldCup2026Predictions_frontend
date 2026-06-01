@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   
   
   verification: {
-    google: "RerALtYUPgKMiTZ",
+    google: "RerALtYUPgKMiTZsN4pJ16FpqOAEs3K-s-QfmqA3h1I",
   },
   
   metadataBase: new URL("https://worldcup26.anuarnazer.com"),
