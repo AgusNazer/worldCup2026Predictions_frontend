@@ -1,20 +1,27 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import { useSyncExternalStore } from 'react'
 
 export default function Navigation() {
-  const isLoggedIn = useSyncExternalStore(
-    (onStoreChange) => {
-      window.addEventListener('storage', onStoreChange)
-      return () => window.removeEventListener('storage', onStoreChange)
-    },
-    () => !!localStorage.getItem('token'),
-    () => false,
-  )
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+
+  useEffect(() => {
+    const syncAuth = () => setIsLoggedIn(!!localStorage.getItem('token'))
+
+    syncAuth()
+    window.addEventListener('storage', syncAuth)
+    window.addEventListener('authchange', syncAuth)
+
+    return () => {
+      window.removeEventListener('storage', syncAuth)
+      window.removeEventListener('authchange', syncAuth)
+    }
+  }, [])
 
   const handleLogout = () => {
     localStorage.removeItem('token')
+    window.dispatchEvent(new Event('authchange'))
     window.location.href = '/'
   }
 

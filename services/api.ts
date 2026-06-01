@@ -5,6 +5,7 @@ const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
 const client = axios.create({
   baseURL: API_BASE,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
   },
@@ -31,6 +32,7 @@ export const api = {
     const res = await client.post<Types.Token>('/auth/login', payload)
     if (res.data.access_token) {
       localStorage.setItem('token', res.data.access_token)
+      window.dispatchEvent(new Event('authchange'))
     }
     return res
   },
