@@ -17,6 +17,8 @@ export default function MatchesPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [currentPage, setCurrentPage] = useState(1)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [isSearching, setIsSearching] = useState(false)
 
   const itemsPerPage = 6
   const totalPages = Math.ceil(matches.length / itemsPerPage)
@@ -28,12 +30,64 @@ export default function MatchesPage() {
     setLoading(true)
     setFilter(newFilter)
     setCurrentPage(1)
+    setSearchQuery('')
+    setIsSearching(false)
+  }
+
+  const handleSearch = () => {
+    if (!searchQuery.trim()) {
+      setIsSearching(false)
+      return
+    }
+    
+    setLoading(true)
+    setIsSearching(true)
+    setCurrentPage(1)
+    
+    api
+      .searchMatches({ q: searchQuery })
+      .then((res) => {
+        if (!Array.isArray(res.data)) {
+          setError(typeof res.data === 'string' ? res.data : JSON.stringify(res.data))
+          setMatches([])
+        } else {
+          setMatches(res.data || [])
+        }
+      })
+      .catch((err) => setError(handleApiError(err)))
+      .finally(() => setLoading(false))
+  }
+
+  const handleClearSearch = () => {
+    setSearchQuery('')
+    setIsSearching(false)
+    setCurrentPage(1)
+    setLoading(true)
+    api
+      .getMatches(filter)
+      .then((res) => {
+        if (!Array.isArray(res.data)) {
+          setError(typeof res.data === 'string' ? res.data : JSON.stringify(res.data))
+          setMatches([])
+        } else {
+          setMatches(res.data || [])
+        }
+      })
+      .catch((err) => setError(handleApiError(err)))
+      .finally(() => setLoading(false))
   }
 
   useEffect(() => {
     api
       .getMatches(filter)
-      .then((res) => setMatches(res.data || []))
+      .then((res) => {
+        if (!Array.isArray(res.data)) {
+          setError(typeof res.data === 'string' ? res.data : JSON.stringify(res.data))
+          setMatches([])
+        } else {
+          setMatches(res.data || [])
+        }
+      })
       .catch((err) => setError(handleApiError(err)))
       .finally(() => setLoading(false))
   }, [filter])
@@ -90,6 +144,35 @@ export default function MatchesPage() {
             {opt.label}
           </button>
         ))}
+      </div>
+
+      {/* Search Bar */}
+      <div style={styles.searchBar}>
+        <div style={styles.searchContainer}>
+          <input
+            type="text"
+            placeholder="🔍 Busca por equipo o ID..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
+            style={styles.searchInput}
+          />
+          <button
+            onClick={handleSearch}
+            style={styles.searchButton}
+            disabled={loading}
+          >
+            Buscar
+          </button>
+          {isSearching && (
+            <button
+              onClick={handleClearSearch}
+              style={styles.clearButton}
+            >
+              ✕ Limpiar
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Content */}
@@ -287,5 +370,55 @@ const styles = {
     fontSize: '13px',
     color: 'var(--color-text-dim)',
     fontWeight: 500,
+  } as React.CSSProperties,
+
+  searchBar: {
+    padding: '16px 20px',
+    borderBottom: '1px solid var(--color-divider)',
+    position: 'relative',
+    zIndex: 1,
+  } as React.CSSProperties,
+
+  searchContainer: {
+    display: 'flex',
+    gap: '8px',
+    maxWidth: '900px',
+    margin: '0 auto',
+  } as React.CSSProperties,
+
+  searchInput: {
+    flex: 1,
+    padding: '10px 14px',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    backgroundColor: 'var(--color-surface)',
+    color: 'var(--color-text)',
+    fontSize: '14px',
+    outline: 'none',
+    transition: 'border-color 200ms ease',
+  } as React.CSSProperties,
+
+  searchButton: {
+    padding: '10px 20px',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    backgroundColor: 'rgba(0, 217, 255, 0.1)',
+    color: 'var(--color-accent-cyan)',
+    fontSize: '13px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 150ms ease',
+  } as React.CSSProperties,
+
+  clearButton: {
+    padding: '10px 16px',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-sm)',
+    backgroundColor: 'rgba(255, 51, 102, 0.1)',
+    color: 'var(--color-accent-pink)',
+    fontSize: '13px',
+    fontWeight: 600,
+    cursor: 'pointer',
+    transition: 'all 150ms ease',
   } as React.CSSProperties,
 }
