@@ -151,7 +151,7 @@ export default function MatchesPage() {
         <div style={styles.searchContainer}>
           <input
             type="text"
-            placeholder="🔍 Busca por equipo o ID..."
+            placeholder="🔍 Busca por equipo..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleSearch()}

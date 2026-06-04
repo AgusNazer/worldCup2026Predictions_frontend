@@ -18,8 +18,15 @@ export default function Home() {
   const [matches, setMatches] = useState<Match[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [showWelcomeModal, setShowWelcomeModal] = useState(false)
+  const [dontShowAgain, setDontShowAgain] = useState(false)
 
   useEffect(() => {
+    const seen = localStorage.getItem('welcomeModalSeen')
+    if (!seen) {
+      window.requestAnimationFrame(() => setShowWelcomeModal(true))
+    }
+
     Promise.all([
       api.getRankings(5).then((res) => setRanking(res.data.data || [])),
       api.getMatches('scheduled').then((res) => setMatches(res.data.slice(0, 5) || [])),
@@ -28,12 +35,47 @@ export default function Home() {
       .finally(() => setLoading(false))
   }, [])
 
+  const handleCloseWelcomeModal = () => {
+    if (dontShowAgain) {
+      localStorage.setItem('welcomeModalSeen', 'true')
+    }
+    setShowWelcomeModal(false)
+  }
+
   const handlePredict = (matchId: number) => {
     router.push(`/predictions/${matchId}`)
   }
 
   return (
     <div style={styles.container}>
+      {showWelcomeModal && (
+        <div style={styles.modalOverlay} role="dialog" aria-modal="true" aria-labelledby="welcome-title">
+          <div style={styles.modalCard}>
+            <h2 id="welcome-title" style={styles.modalTitle}>🏆 ¡Bienvenido a World Cup 2026 Predictions!</h2>
+            <div style={styles.modalBody}>
+              <p> Aquí podrás seguir todos los partidos del Mundial 2026 y crear tus propias predicciones.</p>
+          
+              <p> ¡Mucha suerte y que gane el mejor pronosticador! ⚽</p>
+            </div>
+
+            <label style={styles.modalCheckboxRow}>
+              <input
+                type="checkbox"
+                checked={dontShowAgain}
+                onChange={(e) => setDontShowAgain(e.target.checked)}
+              />
+              <span>No volver a mostrar este mensaje</span>
+            </label>
+
+            <div style={styles.modalActions}>
+              <button type="button" style={styles.modalButton} onClick={handleCloseWelcomeModal}>
+                Entendido
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       <div style={styles.backdropA} />
       <div style={styles.backdropB} />
       <div style={styles.contentBg} aria-hidden="true">
@@ -323,6 +365,75 @@ const styles = {
 
   cardFooter: {
     marginTop: '12px',
+  } as React.CSSProperties,
+
+  modalOverlay: {
+    position: 'fixed',
+    inset: 0,
+    zIndex: 9999,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '20px',
+    backgroundColor: 'rgba(3, 6, 15, 0.78)',
+    backdropFilter: 'blur(8px)',
+  } as React.CSSProperties,
+
+  modalCard: {
+    width: '100%',
+    maxWidth: '640px',
+    borderRadius: '24px',
+    border: '1px solid rgba(255,255,255,0.14)',
+    background: 'linear-gradient(180deg, rgba(16,18,32,0.98) 0%, rgba(10,12,22,0.98) 100%)',
+    boxShadow: '0 24px 90px rgba(0,0,0,0.45)',
+    padding: '28px 24px',
+    color: 'var(--color-text)',
+  } as React.CSSProperties,
+
+  modalTitle: {
+    margin: '0 0 16px 0',
+    fontSize: '24px',
+    lineHeight: 1.2,
+    color: 'var(--color-accent-yellow)',
+    textAlign: 'center',
+    fontWeight: 900,
+  } as React.CSSProperties,
+
+  modalBody: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+    fontSize: '15px',
+    color: 'var(--color-text-dim)',
+    lineHeight: 1.6,
+    marginBottom: '18px',
+  } as React.CSSProperties,
+
+  modalCheckboxRow: {
+    display: 'flex',
+    gap: '10px',
+    alignItems: 'center',
+    justifyContent: 'center',
+    color: 'var(--color-text)',
+    fontSize: '14px',
+    userSelect: 'none',
+    marginBottom: '20px',
+  } as React.CSSProperties,
+
+  modalActions: {
+    display: 'flex',
+    justifyContent: 'center',
+  } as React.CSSProperties,
+
+  modalButton: {
+    padding: '12px 20px',
+    border: 'none',
+    borderRadius: '999px',
+    background: 'linear-gradient(90deg, var(--color-accent-yellow), var(--color-accent-cyan))',
+    color: '#07111f',
+    fontSize: '14px',
+    fontWeight: 900,
+    cursor: 'pointer',
   } as React.CSSProperties,
 
 }
