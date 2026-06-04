@@ -21,6 +21,10 @@ export default function MyPredictionsPage() {
   const [matchesById, setMatchesById] = useState<Record<number, Match>>({})
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+  const [savingId, setSavingId] = useState<number | null>(null)
+  const [editingId, setEditingId] = useState<number | null>(null)
+  const [editPredA, setEditPredA] = useState(0)
+  const [editPredB, setEditPredB] = useState(0)
 
   useEffect(() => {
     api
@@ -54,6 +58,53 @@ export default function MyPredictionsPage() {
 
   const totalPoints = predictions.reduce((sum, prediction) => sum + prediction.points_earned, 0)
 
+  const canEditPrediction = (match?: Match) => {
+    if (!match) return false
+    const matchDate = new Date(match.match_date)
+    const editableUntil = new Date(matchDate.getTime() - 24 * 60 * 60 * 1000)
+    return new Date() < editableUntil
+  }
+
+  const startEdit = (prediction: Prediction) => {
+    setEditingId(prediction.id)
+    setEditPredA(prediction.pred_a)
+    setEditPredB(prediction.pred_b)
+  }
+
+  const cancelEdit = () => {
+    setEditingId(null)
+  }
+
+  const saveEdit = async (predictionId: number) => {
+    if (editPredA < 0 || editPredB < 0) return
+    setSavingId(predictionId)
+    setError('')
+    try {
+      const res = await api.updatePrediction(predictionId, editPredA, editPredB)
+      setPredictions((prev) => prev.map((prediction) => (
+        prediction.id === predictionId ? res.data : prediction
+      )))
+      setEditingId(null)
+    } catch (err) {
+      setError(handleApiError(err))
+    } finally {
+      setSavingId(null)
+    }
+  }
+
+  const handleDelete = async (predictionId: number) => {
+    setSavingId(predictionId)
+    setError('')
+    try {
+      await api.deletePrediction(predictionId)
+      setPredictions((prev) => prev.filter((prediction) => prediction.id !== predictionId))
+    } catch (err) {
+      setError(handleApiError(err))
+    } finally {
+      setSavingId(null)
+    }
+  }
+
   return (
     <div style={styles.container}>
       <div style={styles.containerBg} aria-hidden="true">
@@ -85,6 +136,9 @@ export default function MyPredictionsPage() {
                 {items.map(({ prediction, match }) => {
                   const matchLabel = match ? `${match.team_a} vs ${match.team_b}` : `Partido #${prediction.match_id}`
                   const statusLabel = match?.status === 'finished' ? 'finalizado' : 'pendiente'
+                  const canEdit = canEditPrediction(match)
+                  const isEditing = editingId === prediction.id
+                  const isBusy = savingId === prediction.id
 
                   return (
                     <div key={prediction.id} style={{ ...styles.predItem, ...(isMobile ? styles.predItemMobile : {}) }}>
@@ -96,11 +150,56 @@ export default function MyPredictionsPage() {
                           </span>
                         </div>
                         <div style={{ ...styles.predResult, ...(isMobile ? styles.predResultMobile : {}) }}>
-                          <span style={styles.scoreBadge}>
-                            {match?.team_a ?? 'Equipo A'} {prediction.pred_a} - {prediction.pred_b} {match?.team_b ?? 'Equipo B'}
-                          </span>
-                          <span style={styles.status}>Estado: {statusLabel}</span>
+                          {isEditing ? (
+                            <div style={styles.editRow}>
+                              <input
+                                type="number"
+                                min={0}
+                                value={editPredA}
+                                onChange={(e) => setEditPredA(Number(e.target.value))}
+                                style={styles.editInput}
+                              />
+                              <span style={styles.editDash}>-</span>
+                              <input
+                                type="number"
+                                min={0}
+                                value={editPredB}
+                                onChange={(e) => setEditPredB(Number(e.target.value))}
+                                style={styles.editInput}
+                              />
+                              <button style={styles.inlineBtn} disabled={isBusy} onClick={() => saveEdit(prediction.id)}>
+                                Guardar
+                              </button>
+                              <button style={styles.inlineBtnSecondary} disabled={isBusy} onClick={cancelEdit}>
+                                Cancelar
+                              </button>
+                            </div>
+                          ) : (
+                            <>
+                              <span style={styles.scoreBadge}>
+                                {match?.team_a ?? 'Equipo A'} {prediction.pred_a} - {prediction.pred_b} {match?.team_b ?? 'Equipo B'}
+                              </span>
+                              <span style={styles.status}>Estado: {statusLabel}</span>
+                            </>
+                          )}
                         </div>
+                        <div style={styles.actionsRow}>
+                          <button
+                            style={styles.inlineBtnSecondary}
+                            disabled={!canEdit || isBusy || isEditing}
+                            onClick={() => startEdit(prediction)}
+                          >
+                            Editar
+                          </button>
+                          <button
+                            style={styles.inlineBtnDanger}
+                            disabled={isBusy}
+                            onClick={() => handleDelete(prediction.id)}
+                          >
+                            Eliminar
+                          </button>
+                        </div>
+                        {!canEdit && <span style={styles.editHint}>Solo editable hasta 24h antes del partido</span>}
                       </div>
                       <div style={{ ...styles.pointsBox, ...(isMobile ? styles.pointsBoxMobile : {}) }}>Puntos: {prediction.points_earned}</div>
                     </div>
@@ -287,6 +386,73 @@ const styles = {
 
   status: {
     fontSize: '12px',
+    color: 'var(--color-text-muted)',
+  } as React.CSSProperties,
+
+  editRow: {
+    display: 'flex',
+    gap: '8px',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+  } as React.CSSProperties,
+
+  editInput: {
+    width: '64px',
+    padding: '6px 8px',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-xs)',
+    backgroundColor: 'var(--color-surface)',
+    color: 'var(--color-text)',
+  } as React.CSSProperties,
+
+  editDash: {
+    color: 'var(--color-text-muted)',
+    fontWeight: 700,
+  } as React.CSSProperties,
+
+  actionsRow: {
+    display: 'flex',
+    gap: '8px',
+    marginTop: '6px',
+    flexWrap: 'wrap',
+  } as React.CSSProperties,
+
+  inlineBtn: {
+    padding: '6px 10px',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-xs)',
+    backgroundColor: 'rgba(0, 217, 255, 0.1)',
+    color: 'var(--color-accent-cyan)',
+    fontSize: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  } as React.CSSProperties,
+
+  inlineBtnSecondary: {
+    padding: '6px 10px',
+    border: '1px solid var(--color-border)',
+    borderRadius: 'var(--radius-xs)',
+    backgroundColor: 'var(--color-surface)',
+    color: 'var(--color-text)',
+    fontSize: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  } as React.CSSProperties,
+
+  inlineBtnDanger: {
+    padding: '6px 10px',
+    border: '1px solid var(--color-accent-pink)',
+    borderRadius: 'var(--radius-xs)',
+    backgroundColor: 'rgba(255, 51, 102, 0.1)',
+    color: 'var(--color-accent-pink)',
+    fontSize: '12px',
+    fontWeight: 700,
+    cursor: 'pointer',
+  } as React.CSSProperties,
+
+  editHint: {
+    marginTop: '6px',
+    fontSize: '11px',
     color: 'var(--color-text-muted)',
   } as React.CSSProperties,
 

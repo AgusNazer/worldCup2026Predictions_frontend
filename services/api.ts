@@ -86,6 +86,17 @@ export const api = {
       pred_b: predB,
     })
   },
+
+  async updatePrediction(predictionId: number, predA: number, predB: number) {
+    return client.put<Types.Prediction>(`/predictions/${predictionId}`, {
+      pred_a: predA,
+      pred_b: predB,
+    })
+  },
+
+  async deletePrediction(predictionId: number) {
+    return client.delete(`/predictions/${predictionId}`)
+  },
 }
 
 export function handleApiError(error: unknown): string {
